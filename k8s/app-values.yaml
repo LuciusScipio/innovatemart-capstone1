@@ -1,0 +1,12 @@
+# Example snippet mapping services to external AWS resources instead of internal pods
+catalog:
+  database:
+    type: mysql
+    endpoint: "your-rds-mysql-endpoint.amazonaws.com"
+    secretName: "aws-db-secrets" 
+
+carts:
+  database:
+    type: dynamodb
+    table: "project-bedrock-carts"
+    region: "us-east-1"
