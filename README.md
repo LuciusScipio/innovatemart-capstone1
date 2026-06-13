@@ -86,11 +86,7 @@ Configure the Carts service to use Amazon DynamoDB:
 
 ```bash
 
-aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
-
-kubectl create namespace retail-space  
-
-kubectl apply -f retail-app-manifests.yaml -n retail-space          
+git push
 ```
 
 ---
@@ -177,49 +173,75 @@ Create the following workflow:
 **File Location**
 
 ```text
-.github/workflows/deploy.yml
+.github/workflows/CICD.yml
 ```
 
 ### Workflow Definition
 
 ```yaml
-name: "Project Bedrock Infrastructure Pipeline"
+name: "Project Bedrock Infrastructure CI/CD"
 
 on:
+  pull_request:
+    branches: [ main ]
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   terraform:
-    name: "Apply Infrastructure Map"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Setup Terraform Engine
-        uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform
 
-      - name: Terraform Init & Apply
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+        working-directory: ./terraform
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
+
+
+      
+      - name: Deploy Retail Application to EKS
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          cd terraform
-          terraform init
-          terraform apply --auto-approve
+          # 1. Authenticate the GitHub Runner with your new EKS cluster
+          aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
+          
+          # 2. Create the retail-space namespace safely if it doesn't exist
+          kubectl create namespace retail-space --dry-run=client -o yaml | kubectl apply -f -
+          
+          # 3. Apply your application manifests
+          kubectl apply -f ../k8s/retail-app-manifests.yaml -n retail-space
+          
+          # 4. Wait briefly for the load balancer endpoint to generate and display it in logs
+          echo "=================================================="
+          echo "FETCHING APP UI SERVICE ROUTE:"
+          echo "=================================================="
+          sleep 10
+          kubectl get service ui -n retail-space
 ```
 > **Note:** Rememer to configure your Github secrets for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 ---
 
-## 3. Triggering the Automation Workflow
 
 ### Automatic Trigger
 
@@ -233,16 +255,9 @@ git push origin main
 
 GitHub Actions will automatically start the deployment workflow.
 
-### Manual Trigger
+> **Note:** Rememer to configure your Github secrets for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 
-1. Open your GitHub repository.
-2. Select the **Actions** tab.
-3. Click **Project Bedrock Infrastructure Pipeline**.
-4. Click **Run workflow**.
-5. Select the target branch.
-6. Click **Run workflow**.
 
-The workflow will begin immediately and apply the infrastructure changes.
 
 ---
 
@@ -257,9 +272,7 @@ Terraform Apply
       ↓
 Configure Databases
       ↓
-Create namespace & apply manifest
-      ↓
-Verify Services
+   Git Push
       ↓
 Retrieve Load Balancer URL
 ```
