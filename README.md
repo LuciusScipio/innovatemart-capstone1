@@ -1,6 +1,3 @@
-Here's your content properly formatted in Markdown:
-
-````markdown
 # Development Guide
 
 This guide outlines the step-by-step procedures to deploy, verify, and interact with the Project Bedrock microservices infrastructure. It details how to initialize your Terraform core components, resolve typical account boundaries, handle database configurations, and trigger your automated resource pipelines.
@@ -44,7 +41,7 @@ terraform apply
 
 The `retail-store-sample-app` is structured as a collection of modular Kubernetes microservices. Rather than using an external hosted repository endpoint, you should source the raw configurations directly.
 
-## Option A: Unified Manifest Track (Recommended)
+## Unified Manifest Track
 
 Download the complete pre-packaged architecture manifest:
 
@@ -52,15 +49,6 @@ Download the complete pre-packaged architecture manifest:
 curl -L https://github.com/aws-containers/retail-store-sample-app/releases/latest/download/kubernetes.yaml -o retail-app-manifests.yaml
 ```
 
-## Option B: Local Source Tracking (Helm)
-
-If you require a Helm-based release lifecycle, clone the repository locally:
-
-```powershell
-cd ..
-git clone https://github.com/aws-containers/retail-store-sample-app.git
-cd .\retail-store-sample-app\charts\retail-store-sample-app\
-```
 
 ---
 
@@ -95,13 +83,15 @@ Configure the Carts service to use Amazon DynamoDB:
 
 ## 2. Deploy the Application
 
-Apply the Helm release into the target namespace:
+Create namespace and apply the manifest to the target namespace:
 
 ```bash
-helm upgrade --install retail-store ./ \
-  -f path/to/custom-values.yaml \
-  --namespace retail-space \
-  --create-namespace
+
+aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
+
+kubectl create namespace retail-space  
+
+kubectl apply -f retail-app-manifests.yaml -n retail-space          
 ```
 
 ---
@@ -121,14 +111,10 @@ kubectl get service ui -n retail-space
 Locate the value in the **EXTERNAL-IP** column:
 
 ```text
-a1234567890.us-east-1.elb.amazonaws.com
+e.g: a1234567890.us-east-1.elb.amazonaws.com
 ```
 
-### For Ingress Deployments
 
-```bash
-kubectl get ingress -n retail-space
-```
 
 > **Note:** Allow 2–3 minutes for AWS Elastic Load Balancer target health checks to complete before accessing the application.
 
@@ -139,7 +125,7 @@ kubectl get ingress -n retail-space
 Upload a test file into:
 
 ```text
-bedrock-assets-alt-soe-25-3343
+bedrock-assets-your-id
 ```
 
 > Ensure the bucket name remains lowercase to satisfy DNS naming requirements.
@@ -232,7 +218,7 @@ jobs:
           terraform init
           terraform apply --auto-approve
 ```
-
+> **Note:** Rememer to configure your Github secrets for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 ---
 
 ## 3. Triggering the Automation Workflow
@@ -273,16 +259,9 @@ Terraform Apply
       ↓
 Configure Databases
       ↓
-Deploy Helm Release
+Create namespace & apply manifest
       ↓
 Verify Services
       ↓
 Retrieve Load Balancer URL
-      ↓
-Test S3 → Lambda Automation
-      ↓
-Monitor CloudWatch Logs
-      ↓
-Trigger CI/CD Pipeline
 ```
-````

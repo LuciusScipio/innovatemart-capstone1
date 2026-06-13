@@ -11,4 +11,5 @@ terraform/*.tfstate.backup
 terraform/.terraform/
 *.tfstate.backup
 .terraform.lock.hcl
+retail-app-manifests.yaml
 terraform/.terraform.lock.hcl

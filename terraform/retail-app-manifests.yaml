@@ -813,10 +813,10 @@ spec:
             initialDelaySeconds: 10
           resources:
             limits:
-              memory: 512Mi
+              memory: 256Mi
             requests:
-              cpu: 50m
-              memory: 128Mi
+              cpu: 25m
+              memory: 64Mi
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume

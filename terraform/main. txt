@@ -9,7 +9,7 @@ module "vpc" {
   name = "project-bedrock-vpc"
   cidr = "10.0.0.0/16"
 
-  
+  # Deploying across 2 Availability Zones for high availability
   azs             = ["us-east-1a", "us-east-1b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
@@ -25,7 +25,7 @@ module "vpc" {
     "kubernetes.io/role/internal-elb" = "1"
   }
 
-
+  # Mandatory Capstone Project Tagging
   tags = {
     Project = "karatu-2025-capstone"
   }
@@ -42,10 +42,6 @@ module "eks" {
   cluster_name    = "project-bedrock-cluster"
   cluster_version = "1.34" # Meets >= 1.34.0 standard
 
-# ADD THESE TWO LINES TO ENABLE PUBLIC ENDPOINT ACCESS:
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
-
   # Dynamically pull the network settings from the VPC module above
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -56,13 +52,12 @@ module "eks" {
   # Worker Nodes Group Configuration
   eks_managed_node_groups = {
     bedrock_nodes = {
-      min_size       = 4
-      max_size       = 5
-      desired_size   = 4
-      instance_types = ["t3.micro", "t3a.micro"] # Reliable and cost-efficient for microservices
+      min_size       = 2
+      max_size       = 4
+      desired_size   = 2
+      instance_types = ["t3.medium"] # Reliable and cost-efficient for microservices
       iam_role_additional_policies = {
         CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-        AmazonDynamoDBFullAccess    = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
       }
     }
   }
@@ -76,10 +71,10 @@ module "eks" {
   }
 }
 
-# ===========================================
-# PART 3: SECURITY GROUPS (THE FIREWALL)
-# ===========================================
-
+#===========================================
+# 3 Security Groups (The Firewall)
+#===========================================
+# Security Group for Relational Databases (RDS)
 resource "aws_security_group" "db_sg" {
   name        = "project-bedrock-db-sg"
   description = "Allow inbound traffic from EKS worker nodes to RDS"
@@ -94,15 +89,6 @@ resource "aws_security_group" "db_sg" {
     security_groups = [module.eks.node_security_group_id]
   }
 
-# Supplementary entry for cluster shared communication
-  ingress {
-    description     = "MySQL from EKS Cluster security group"
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [module.eks.cluster_security_group_id]
-  }
-
   # Inbound PostgreSQL (5432) from EKS Nodes
   ingress {
     description     = "PostgreSQL from EKS nodes"
@@ -112,28 +98,29 @@ resource "aws_security_group" "db_sg" {
     security_groups = [module.eks.node_security_group_id]
   }
 
-  # Outbound rule (Corrected to global wildcard)
+  # Outbound rule
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/16"]
   }
 
   tags = { Project = "karatu-2025-capstone" }
 }
 
-# ===========================================
-# PART 4: DATA LAYER (RDS & DYNAMODB)
-# ===========================================
 
-# Subnet Group
+#===========================================
+#4 DB
+#===========================================
+# Subnet
 resource "aws_db_subnet_group" "bedrock_db_subnet_group" {
   name       = "project-bedrock-db-subnet-group"
   subnet_ids = module.vpc.private_subnets
 
   tags = { Project = "karatu-2025-capstone" }
 }
+
 
 # Amazon RDS MySQL (For Catalog Service)
 resource "aws_db_instance" "mysql" {
@@ -144,7 +131,7 @@ resource "aws_db_instance" "mysql" {
   allocated_storage      = 20
   db_name                = "catalog"
   username               = "dbadmin"
-  password               = "BedrockSecurePass123!"
+  password               = "BedrockSecurePass123!" # Hardcoded briefly for simplicity, or inject via secrets
   db_subnet_group_name   = aws_db_subnet_group.bedrock_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   skip_final_snapshot    = true
@@ -170,7 +157,7 @@ resource "aws_db_instance" "postgres" {
 }
 
 
-# Amazon DynamoDB Table (For Carts Service)
+
 resource "aws_dynamodb_table" "carts" {
   name         = "project-bedrock-carts"
   billing_mode = "PAY_PER_REQUEST"
@@ -181,21 +168,17 @@ resource "aws_dynamodb_table" "carts" {
     type = "S"
   }
 
-  # 1. Define the customerId attribute so it can be used in the index
-  attribute {
-    name = "customerId"
-    type = "S"
-  }
-
-  # 2. Configure the Global Secondary Index the Spring Boot app requires
-  global_secondary_index {
-    name            = "idx_global_customerId"
-    hash_key        = "customerId"
-    projection_type = "ALL"
-  }
-
   tags = { Project = "karatu-2025-capstone" }
 }
-# ===========================================
-# PART 5: OBSERVABILITY
-# ===========================================
+
+
+# terraform/observability.tf
+
+resource "aws_eks_addon" "cloudwatch_observability" {
+  cluster_name = module.eks.cluster_name
+  addon_name   = "amazon-cloudwatch-observability"
+
+  tags = {
+    Project = "karatu-2025-capstone"
+  }
+}
