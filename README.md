@@ -58,7 +58,7 @@ To integrate the microservices with persistent data storage, update the default 
 
 ## 1. Update Endpoint Environment Variables
 
-Modify the deployment configuration blocks in your manifest or `values.yaml` file.
+Modify the deployment configuration blocks in your manifest `retail-app-manifests.yaml` file.
 
 ### Catalog Service
 
@@ -83,7 +83,6 @@ Configure the Carts service to use Amazon DynamoDB:
 
 ## 2. Deploy the Application
 
-Create namespace and apply the manifest to the target namespace:
 
 ```bash
 
@@ -102,7 +101,6 @@ After deployment completes successfully, verify connectivity and retrieve the ap
 
 ## 1. Retrieve the Load Balancer URL
 
-### For LoadBalancer Services
 
 ```bash
 kubectl get service ui -n retail-space
