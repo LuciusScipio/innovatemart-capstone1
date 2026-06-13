@@ -44,7 +44,7 @@ jobs:
           kubectl create namespace retail-space --dry-run=client -o yaml | kubectl apply -f -
           
           # Adjust this path below if your yaml manifest file sits in a different directory
-          if [ -f ../kubernetes/retail-app-manifests.yaml ]; then
+          if [ -f ../k8s/retail-app-manifests.yaml ]; then
             kubectl apply -f ../kubernetes/retail-app-manifests.yaml -n retail-space
           else
             echo "Manifest file not found at default path, checking root..."
