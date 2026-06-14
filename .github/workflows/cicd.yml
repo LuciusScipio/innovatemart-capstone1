@@ -86,7 +86,8 @@ jobs:
           kubectl create namespace retail-app --dry-run=client -o yaml | kubectl apply -f -
           
           # 3. Apply your application manifests
-          kubectl apply -f k8s/patched-manifests.yaml -n retail-app
+          #kubectl apply -f k8s/patched-manifests.yaml -n retail-app
+          kubectl apply -f k8s/retail-app-manifests.yaml -n retail-app
           
           # 4. Wait briefly for the load balancer endpoint to generate and display it in logs
           echo "=================================================="
