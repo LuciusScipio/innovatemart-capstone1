@@ -18,8 +18,8 @@ kind: Secret
 metadata:
   name: catalog-db
 stringData:
-  RETAIL_CATALOG_PERSISTENCE_USER: "${DB_USERNAME}"
-  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "${DB_PASSWORD}"
+  RETAIL_CATALOG_PERSISTENCE_USER: $DB_USERNAME
+  RETAIL_CATALOG_PERSISTENCE_PASSWORD: $DB_PASSWORD
 ---
 # Source: retail-store-sample-catalog-chart/templates/configmap.yml
 apiVersion: v1
@@ -292,8 +292,8 @@ kind: Secret
 metadata:
   name: orders-db
 stringData:
-  RETAIL_ORDERS_PERSISTENCE_USERNAME: "${DB_USERNAME}"
-  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "${DB_PASSWORD}"
+  RETAIL_ORDERS_PERSISTENCE_USERNAME: $DB_USERNAME
+  RETAIL_ORDERS_PERSISTENCE_PASSWORD: $DB_PASSWORD
 ---
 # Source: retail-store-sample-orders-chart/templates/configmap.yml
 apiVersion: v1
