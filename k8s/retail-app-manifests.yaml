@@ -17,9 +17,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: catalog-db
-data:
-  RETAIL_CATALOG_PERSISTENCE_USER: "ZGJhZG1pbg=="
-  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "QmVkcm9ja1NlY3VyZVBhc3MxMjMh"
+stringData:
+  RETAIL_CATALOG_PERSISTENCE_USER: "${DB_USERNAME}"
+  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "${DB_PASSWORD}"
 ---
 # Source: retail-store-sample-catalog-chart/templates/configmap.yml
 apiVersion: v1
@@ -28,7 +28,7 @@ metadata:
   name: catalog
 data:
   RETAIL_CATALOG_PERSISTENCE_PROVIDER: mysql
-  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: project-bedrock-mysql.cid8e2iqm0f7.us-east-1.rds.amazonaws.com:3306
+  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: ${MYSQL_ENDPOINT}
   RETAIL_CATALOG_PERSISTENCE_DB_NAME: catalog
   RETAIL_CATALOG_SEARCH_ENABLED: "false"
 
@@ -291,9 +291,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: orders-db
-data:
-  RETAIL_ORDERS_PERSISTENCE_USERNAME: "ZGJhZG1pbg=="
-  RETAIL_ORDERS_PERSISTENCE_PASSWORD:  "QmVkcm9ja1NlY3VyZVBhc3MxMjMh"
+stringData:
+  RETAIL_ORDERS_PERSISTENCE_USERNAME: "${DB_USERNAME}"
+  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "${DB_PASSWORD}"
 ---
 # Source: retail-store-sample-orders-chart/templates/configmap.yml
 apiVersion: v1
@@ -304,7 +304,7 @@ data:
   RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
   RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES: orders-rabbitmq:5672
   RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
-  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: project-bedrock-postgres.cid8e2iqm0f7.us-east-1.rds.amazonaws.com:5432
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: ${POSTGRES_ENDPOINT}
   RETAIL_ORDERS_PERSISTENCE_NAME: orders
 ---
 
