@@ -78,6 +78,10 @@ jobs:
       # ----------------------------------------------------------
       - name: Terraform Teardown
         if: github.ref == 'refs/heads/destroy-infra' && github.event_name == 'push'
+        env:
+          # Providing secrets ensures Terraform validates configuration blocks successfully
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         run: |
           # 1. Clean up in-cluster Helm resources first to avoid dependency blocks
           aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster || echo "Cluster already gone or unreachable"
