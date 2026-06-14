@@ -37,19 +37,22 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: ./terraform
 
+
       - name: Deploy Retail Application to EKS
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
+          # 1. Authenticate the GitHub Runner with your new EKS cluster
           aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
+          
+          # 2. Create the retail-space namespace safely if it doesn't exist
           kubectl create namespace retail-space --dry-run=client -o yaml | kubectl apply -f -
           
-          # Adjust this path below if your yaml manifest file sits in a different directory
-          if [ -f ../k8s/retail-app-manifests.yaml ]; then
-            kubectl apply -f ../kubernetes/retail-app-manifests.yaml -n retail-space
-          else
-            echo "Manifest file not found at default path, checking root..."
-            kubectl apply -f ../retail-app-manifests.yaml -n retail-space
-          fi
+          # 3. Apply your application manifests
+          kubectl apply -f ../k8s/retail-app-manifests.yaml -n retail-space
           
+          # 4. Wait briefly for the load balancer endpoint to generate and display it in logs
+          echo "=================================================="
+          echo "FETCHING APP UI SERVICE ROUTE:"
+          echo "=================================================="
           sleep 10
           kubectl get service ui -n retail-space

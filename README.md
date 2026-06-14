@@ -88,7 +88,7 @@ Configure the Carts service to use Amazon DynamoDB:
 
 git push
 ```
-
+> **Note:** Create an s3 bucket for your terraform statefile  and configure it as backeend
 ---
 
 # Phase 4: Verification & Application Access

@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket         = "project-bedrock-tfstate-cype" 
+    key            = "state/terraform.tfstate"     
+    region         = "us-east-1"
+    encrypt        = true                          
+  }
+}
+
 # ==========================================
 # PART 1: NETWORKING (VPC & SUBNETS)
 # ==========================================
