@@ -87,7 +87,7 @@ jobs:
           kubectl create namespace retail-app --dry-run=client -o yaml | kubectl apply -f -
           
           # 3. Apply your application manifests
-          kubectl apply --dry-run=client -f k8s/patched-manifests.yaml
+          #kubectl apply --dry-run=client -f k8s/patched-manifests.yaml
           kubectl apply -f k8s/patched-manifests.yaml -n retail-app
           #kubectl apply -f k8s/retail-app-manifests.yaml -n retail-app
           
