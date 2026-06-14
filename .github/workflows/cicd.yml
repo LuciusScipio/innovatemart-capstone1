@@ -68,8 +68,6 @@ jobs:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}        # <-- Added for envsubst safety
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}        # <-- Added for envsubst safety
-
-
         run: |
           cd terraform
           terraform apply -auto-approve
