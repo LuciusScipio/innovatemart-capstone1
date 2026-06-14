@@ -79,11 +79,15 @@ jobs:
           # 1. Authenticate the GitHub Runner with your new EKS cluster
           aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
           envsubst  '$MYSQL_ENDPOINT $POSTGRES_ENDPOINT $DB_USERNAME $DB_PASSWORD'  < k8s/retail-app-manifests.yaml > k8s/patched-manifests.yaml
+          echo "========== PATCHED MANIFEST =========="
+          cat k8s/patched-manifests.yaml
+          echo "======================================"
           
           # 2. Create the retail-app namespace safely if it doesn't exist
           kubectl create namespace retail-app --dry-run=client -o yaml | kubectl apply -f -
           
           # 3. Apply your application manifests
+          kubectl apply --dry-run=client -f k8s/patched-manifests.yaml
           kubectl apply -f k8s/patched-manifests.yaml -n retail-app
           #kubectl apply -f k8s/retail-app-manifests.yaml -n retail-app
           

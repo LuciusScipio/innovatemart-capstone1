@@ -28,7 +28,7 @@ metadata:
   name: catalog
 data:
   RETAIL_CATALOG_PERSISTENCE_PROVIDER: mysql
-  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: ${MYSQL_ENDPOINT}
+  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: "${MYSQL_ENDPOINT}"
   RETAIL_CATALOG_PERSISTENCE_DB_NAME: catalog
   RETAIL_CATALOG_SEARCH_ENABLED: "false"
 
@@ -284,7 +284,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: orders-rabbitmq
-data:
+data: {}
 ---
 # Source: retail-store-sample-orders-chart/templates/secret-db.yaml
 apiVersion: v1
@@ -304,7 +304,7 @@ data:
   RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
   RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES: orders-rabbitmq:5672
   RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
-  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: ${POSTGRES_ENDPOINT}
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: "${POSTGRES_ENDPOINT}"
   RETAIL_ORDERS_PERSISTENCE_NAME: orders
 ---
 
