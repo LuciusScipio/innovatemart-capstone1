@@ -29,39 +29,65 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -no-color
+        run: |
+          terraform plan -no-color -out=tfplan
+          # Format the plan output into a variable for the commenting tool
+          echo "PLAN_OUTPUT<<EOF" >> $GITHUB_ENV
+          terraform show -no-color tfplan | head -n 150 >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
         working-directory: ./terraform
 
-      - name: Terraform Apply
+      - name: Post Plan Comment to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const output = `#### Terraform Plan Status: 🚀 Success
+            
+            <details><summary>Show Infrastructure Changes</summary>
+            
+            \`\`\`terraform
+            ${process.env.PLAN_OUTPUT}
+            \`\`\`
+            
+            </details>
+            
+            *Pushed by: @${context.actor}, Action: \`${context.eventName}\`*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Apply and Deploy Retail Application to EKS
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
-
-
-      - name: Deploy Retail Application to EKS
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        env:
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}        # <-- Added for envsubst safety
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}        # <-- Added for envsubst safety
         run: |
           cd terraform
+          terraform apply -auto-approve
           export MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint)
           export POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint)
           
           cd ..
-          envsubst < k8s/retail-app-manifests.yaml > k8s/patched-manifests.yaml
 
           # 1. Authenticate the GitHub Runner with your new EKS cluster
           aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster
+          envsubst  '$MYSQL_ENDPOINT $POSTGRES_ENDPOINT $DB_USERNAME $DB_PASSWORD'  < k8s/retail-app-manifests.yaml > k8s/patched-manifests.yaml
+          echo "========== PATCHED MANIFEST ==========="
           
           # 2. Create the retail-app namespace safely if it doesn't exist
           kubectl create namespace retail-app --dry-run=client -o yaml | kubectl apply -f -
           
           # 3. Apply your application manifests
-          kubectl apply -f k8s/retail-app-manifests.yaml -n retail-app
+          #kubectl apply --dry-run=client -f k8s/patched-manifests.yaml
+          kubectl apply -f k8s/patched-manifests.yaml -n retail-app
+          #kubectl apply -f k8s/retail-app-manifests.yaml -n retail-app
           
           # 4. Wait briefly for the load balancer endpoint to generate and display it in logs
           echo "=================================================="
@@ -83,7 +109,7 @@ jobs:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         run: |
-          # 1. Clean up in-cluster Helm resources first to avoid dependency blocks
+          # 1. Clean up in-cluster Helm resources first to avoid dependency blocks. Checks
           aws eks update-kubeconfig --region us-east-1 --name project-bedrock-cluster || echo "Cluster already gone or unreachable"
           kubectl delete -f k8s/retail-app-manifests.yaml -n retail-app --ignore-not-found=true || echo "Manifests clean"
           kubectl delete -f k8s/retail-app-manifests.yaml -n retail-space --ignore-not-found=true || echo "Manifests clean"
