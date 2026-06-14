@@ -1,3 +1,14 @@
+# Map the AWS IAM identity into the cluster control plane securely
+resource "aws_eks_access_entry" "dev_user_access" {
+  cluster_name      = module.eks.cluster_name
+  principal_arn     = aws_iam_user.dev_user.arn
+  kubernetes_groups = [] # Let native K8s RBAC handle permissions via the username mapping
+  type              = "STANDARD"
+
+  # Prevent race conditions by waiting for the EKS module to be fully ready
+  depends_on = [module.eks]
+}
+
 resource "aws_iam_user" "dev_user" {
   name = "bedrock-dev-view"
   tags = { Project = "karatu-2025-capstone" }
