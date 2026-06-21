@@ -73,8 +73,8 @@ jobs:
           terraform apply -auto-approve
           #export MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint)
           #export POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint)
-          export MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint | grep -oE '[a-zA-Z0-9.-]+\.rds\.amazonaws\.com:[0-9]+')
-          export POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint | grep -oE '[a-zA-Z0-9.-]+\.rds\.amazonaws\.com:[0-9]+')
+          export MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint | grep -oE '[a-zA-Z0-9.-]+\.rds\.amazonaws\.com:[0-9]+' | head -n 1)
+          export POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint | grep -oE '[a-zA-Z0-9.-]+\.rds\.amazonaws\.com:[0-9]+' | head -n 1)
           
           cd ..
 
