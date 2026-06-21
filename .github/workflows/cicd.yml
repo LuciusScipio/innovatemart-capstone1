@@ -73,6 +73,7 @@ jobs:
           terraform apply -auto-approve
           export MYSQL_ENDPOINT=$(terraform output -raw mysql_endpoint)
           export POSTGRES_ENDPOINT=$(terraform output -raw postgres_endpoint)
+          terraform output -json > grading.json
           
           cd ..
 
