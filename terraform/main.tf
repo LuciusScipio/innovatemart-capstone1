@@ -9,6 +9,7 @@ terraform {
 
 # ==========================================
 # PART 1: NETWORKING (VPC & SUBNETS)
+#Trying again
 # ==========================================
 
 module "vpc" {
@@ -78,8 +79,8 @@ module "eks" {
   eks_managed_node_groups = {
     bedrock_nodes = {
       min_size       = 4
-      max_size       = 8
-      desired_size   = 6
+      max_size       = 6
+      desired_size   = 5
       instance_types = ["t3.micro", "t3a.micro"] # Reliable and cost-efficient for microservices
       iam_role_additional_policies = {
         CloudWatchAgentServerPolicy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -181,8 +182,8 @@ resource "aws_db_instance" "postgres" {
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
   db_name                = "orders"
-  username               = var.db_username
-  password               = var.db_password
+  username               = "dbadmin"
+  password               = "BedrockSecurePass123!"
   db_subnet_group_name   = aws_db_subnet_group.bedrock_db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   skip_final_snapshot    = true
