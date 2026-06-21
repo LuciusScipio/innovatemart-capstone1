@@ -9,6 +9,7 @@ terraform {
 
 # ==========================================
 # PART 1: NETWORKING (VPC & SUBNETS)
+#Trying again
 # ==========================================
 
 module "vpc" {
