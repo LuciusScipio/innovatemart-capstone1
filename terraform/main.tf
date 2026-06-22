@@ -43,6 +43,7 @@ module "vpc" {
 
 # ==========================================
 # PART 2: COMPUTATION (AMAZON EKS CLUSTER)
+#trial 2
 # ==========================================
 
 module "eks" {
@@ -79,7 +80,7 @@ module "eks" {
   eks_managed_node_groups = {
     bedrock_nodes = {
       min_size       = 4
-      max_size       = 5
+      max_size       = 6
       desired_size   = 5
       instance_types = ["t3.micro", "t3a.micro"] # Reliable and cost-efficient for microservices
       iam_role_additional_policies = {
